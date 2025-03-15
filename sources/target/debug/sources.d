@@ -1,0 +1,1 @@
+/home/neomin/Documentos/Programming\ Works/Rust/RSRender/sources/target/debug/sources: /home/neomin/Documentos/Programming\ Works/Rust/RSRender/sources/src/main.rs /home/neomin/Documentos/Programming\ Works/Rust/RSRender/sources/src/render.rs
