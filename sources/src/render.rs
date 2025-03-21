@@ -8,56 +8,61 @@ use serde_json::{Result, Value};
 
 const FONT_SIZE: f32 = 23.4;
 
-
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Geometry {
-    pub vertex: Vec<[f32;3]>,
-    pub edges: Vec<[usize;2]>,
+    pub vertex: Vec<[f32; 3]>,
+    pub edges: Vec<[usize; 2]>,
 
+    #[serde(default)]
     pub user_angle_x: f32,
+
+    #[serde(default)]
     pub user_angle_y: f32,
-    
+
+    #[serde(default = "default_user_scale")]
     pub user_scale: f32,
+
+    #[serde(default = "default_user_distance")]
     pub user_distance: f32,
+
+    #[serde(default)]
     pub user_x: f32,
+
+    #[serde(default)]
     pub user_y: f32,
+
+    #[serde(default)]
+    pub vertex_editing: bool,
+
+    #[serde(default)]
+    pub selected_vertex: usize,
 }
 
-fn degrees_to_radians(degrees: f32) -> f32 {
-    degrees * (PI / 180.0)
+fn default_user_angle_x() -> f32 {
+    0.0
 }
 
-pub fn rotate(x: f32, y: f32, z: f32, angleX: f32, angleY: f32) -> [f32;3] {
-
-    let radX = degrees_to_radians(angleX);
-    let radY = degrees_to_radians(angleY);
-
-    let cosX = radX.cos();
-    let sinX = radX.sin();
-
-    let cosY = radY.cos();
-    let sinY = radY.sin();
-
-    let xRotY = x * cosY - z * sinY;
-    let zRotY = x * sinY + z * cosY;
-
-    let yRotX = y * cosX - zRotY * sinX;
-    let zRotX = y * sinX + zRotY * cosX;
-
-    return [xRotY, yRotX, zRotX];
+fn default_user_angle_y() -> f32 {
+    0.0
 }
 
-pub fn project(x: f32, y: f32, z: f32, scale: f32, distance: f32) -> [f32;2] {
+fn default_user_scale() -> f32 {
+    1.0
+}
 
-    let x2d = (x * scale)/(z + distance) + (screen_width() / 2 as f32);
-    let y2d = (y * scale)/(z + distance) + (screen_height() / 2 as f32);
+fn default_user_distance() -> f32 {
+    0.0
+}
 
-    return [x2d, y2d];
+fn default_user_x() -> f32 {
+    0.0
+}
+
+fn default_user_y() -> f32 {
+    0.0
 }
 
 impl Geometry {
-
-
 
     pub fn draw(&self) {
 
@@ -103,57 +108,133 @@ impl Geometry {
 
     pub fn movement(&mut self) {
 
-        if is_key_down(KeyCode::O) {
-            if self.user_angle_x <= 360.0 {
-                self.user_angle_x += 1.0;
-            } else {
-                self.user_angle_x = 0.0;
+        //Key actions without vertex editing
+        if !self.vertex_editing {
+            if is_key_down(KeyCode::Up) {
+                self.user_y -= 1.0;
+            }
+            if is_key_down(KeyCode::Down) {
+                self.user_y += 1.0;
+            }
+            if is_key_down(KeyCode::Left) {
+                self.user_x -= 1.0;
+            }
+            if is_key_down(KeyCode::Right) {
+                self.user_x += 1.0;
+            }
+            if is_key_down(KeyCode::Equal) {
+                self.user_scale += 1.0;
+            }
+            if is_key_down(KeyCode::Minus) {
+                self.user_scale -= 1.0;
+            }
+            if is_key_down(KeyCode::O) {
+                if self.user_angle_x <= 360.0 {
+                    self.user_angle_x += 1.0;
+                } else {
+                    self.user_angle_x = 0.0;
+                }
+            }
+    
+            if is_key_down(KeyCode::L) {
+                if self.user_angle_y <= 360.0 {
+                    self.user_angle_y += 1.0;
+                } else {
+                    self.user_angle_y = 0.0;
+                }
             }
         }
+        
+        if self.vertex_editing {
+            
+            let vertex: [f32;3] = self.vertex[self.selected_vertex];
 
-        if is_key_down(KeyCode::L) {
-            if self.user_angle_y <= 360.0 {
-                self.user_angle_y += 1.0;
-            } else {
-                self.user_angle_y = 0.0;
+            if is_key_down(KeyCode::Up) {
+                self.vertex[self.selected_vertex] = transform(vertex[0], vertex[1] - 1.0, vertex[2]);
             }
+            if is_key_down(KeyCode::Down) {
+                self.vertex[self.selected_vertex] = transform(vertex[0], vertex[1] + 1.0, vertex[2]);
+            }
+            if is_key_down(KeyCode::Left) {
+                self.vertex[self.selected_vertex] = transform(vertex[0] - 1.0, vertex[1], vertex[2]);
+            }
+            if is_key_down(KeyCode::Right) {
+                self.vertex[self.selected_vertex] = transform(vertex[0] + 1.0, vertex[1], vertex[2]);
+            }
+            if is_key_down(KeyCode::Equal) {
+                self.vertex[self.selected_vertex] = transform(vertex[0], vertex[1], vertex[2] + 1.0);
+            }
+            if is_key_down(KeyCode::Minus) {
+                self.vertex[self.selected_vertex] = transform(vertex[0], vertex[1], vertex[2] - 1.0);
+            }
+
+            if is_key_pressed(KeyCode::N) {
+                if self.selected_vertex < self.vertex.len() {
+                    self.selected_vertex += 1;
+                }
+            }
+            if is_key_pressed(KeyCode::B) {
+                if self.selected_vertex > 0 {
+                    self.selected_vertex -= 1;
+                }
+            }
+
+            
         }
 
-        if is_key_down(KeyCode::Equal) {
-            self.user_scale += 1.0;
-        }
-        if is_key_down(KeyCode::Minus) {
-            self.user_scale -= 1.0;
-        }
-
-
-        if is_key_down(KeyCode::Up) {
-            self.user_y -= 1.0;
-        }
-        if is_key_down(KeyCode::Down) {
-            self.user_y += 1.0;
-        }
-        if is_key_down(KeyCode::Left) {
-            self.user_x -= 1.0;
-        }
-
-        if is_key_down(KeyCode::Right) {
-            self.user_x += 1.0;
+        //Key actions to toggle vertex editing
+        if is_key_pressed(KeyCode::V) {
+            self.vertex_editing = !self.vertex_editing;
         }
 
     }
 
-    pub fn draw_use() {
+    pub fn draw_vertex_editor(&self) {
+
+        for i in 0..self.vertex.len() {
+            if i > 6 {
+                break;
+            }
+
+            let selected =
+            if self.selected_vertex == i { "(>)" }
+            else { "()" };
+
+            let vertex_str = format!("{} - {} Vertex Point", selected, &i.to_string());
+
+            draw_text(&vertex_str, 10.0, 20.0 + i as f32 * 20.0, FONT_SIZE, WHITE);
+        }
+
+        let toggle_vertex_mode = 
+        if self.vertex_editing { "Press (V) to edit vertex!" }
+        else { "Press (V) to quit vertex editor!" };
+
+        draw_text(toggle_vertex_mode, 10.0, 160.0, FONT_SIZE, WHITE);
+    }
+
+    pub fn draw_use(&self) {
+
+
+        if self.vertex_editing {
+            draw_text("(^) vertex to up", 605.0 , 500.0, FONT_SIZE, WHITE);
+            draw_text("(v) vertex to down", 605.0, 525.0, FONT_SIZE, WHITE);
+            draw_text("(>) vertex to right", 605.0, 550.0, FONT_SIZE, WHITE);
+            draw_text("(<) vertex left", 605.0, 575.0, FONT_SIZE, WHITE);
+
+            draw_text("(-) vertex zoom out", 415.0, 550.0, FONT_SIZE, WHITE);
+            draw_text("(+) vertex zoom in", 415.0, 575.0, FONT_SIZE, WHITE);
+            return;
+        }
 
         draw_text("(^) To up", 675.0 , 500.0, FONT_SIZE, WHITE);
         draw_text("(v) To Down", 675.0, 525.0, FONT_SIZE, WHITE);
         draw_text("(>) To Right", 675.0, 550.0, FONT_SIZE, WHITE);
         draw_text("(<) To Left", 675.0, 575.0, FONT_SIZE, WHITE);
 
-        draw_text("(O >-) Rotate X", 520.0, 500.0, FONT_SIZE, WHITE);
-        draw_text("(L -<) Rotate Y", 520.0, 525.0, FONT_SIZE, WHITE);
-        draw_text("(U -) Zoom out", 520.0, 550.0, FONT_SIZE, WHITE);
-        draw_text("(H +) Zoom in", 520.0, 575.0, FONT_SIZE, WHITE);
+        draw_text("(O >-) Rotate X", 510.0, 500.0, FONT_SIZE, WHITE);
+        draw_text("(L -<) Rotate Y", 510.0, 525.0, FONT_SIZE, WHITE);
+        draw_text("(-) Zoom out", 510.0, 550.0, FONT_SIZE, WHITE);
+        draw_text("(+) Zoom in", 510.0, 575.0, FONT_SIZE, WHITE);
     }
 
 }
@@ -175,29 +256,6 @@ impl Menu {
             selected_file: None,
             scroll_offset: 0.0,
         }
-    }
-
-    pub fn new_geometry() -> Geometry {
-
-        let mut cube = Geometry {
-            vertex: [
-                [0.0, 100.0, 0.0], [100.0, 100.0, 0.0], [100.0, 0.0, 0.0], [0.0, 0.0, 0.0],
-                [0.0, 100.0, 100.0], [100.0, 100.0, 100.0], [100.0, 0.0, 100.0], [0.0, 0.0, 100.0]
-            ].to_vec(),
-            edges: [
-                [0, 1], [1, 2], [2, 3], [3, 0],
-                [7, 6], [6, 5], [5, 4], [4, 7],
-                [0, 4], [1, 5], [2, 6], [3, 7]
-              ].to_vec(),
-              user_angle_x: 0.0,
-              user_angle_y: 0.0,
-              user_scale: 500.0,
-              user_distance: 500.0,
-              user_x: 0.0,
-              user_y: 0.0,
-        };
-        
-        return cube;
     }
 
     pub fn list_files(&mut self) {
@@ -325,6 +383,42 @@ impl Menu {
             }
         }
     }
+}
+
+pub fn transform(x: f32, y: f32, z: f32) -> [f32;3] {
+    return [x, y, z];
+}
+
+fn degrees_to_radians(degrees: f32) -> f32 {
+    degrees * (PI / 180.0)
+}
+
+pub fn rotate(x: f32, y: f32, z: f32, angleX: f32, angleY: f32) -> [f32;3] {
+
+    let radX = degrees_to_radians(angleX);
+    let radY = degrees_to_radians(angleY);
+
+    let cosX = radX.cos();
+    let sinX = radX.sin();
+
+    let cosY = radY.cos();
+    let sinY = radY.sin();
+
+    let xRotY = x * cosY - z * sinY;
+    let zRotY = x * sinY + z * cosY;
+
+    let yRotX = y * cosX - zRotY * sinX;
+    let zRotX = y * sinX + zRotY * cosX;
+
+    return [xRotY, yRotX, zRotX];
+}
+
+pub fn project(x: f32, y: f32, z: f32, scale: f32, distance: f32) -> [f32;2] {
+
+    let x2d = (x * scale)/(z + distance) + (screen_width() / 2 as f32);
+    let y2d = (y * scale)/(z + distance) + (screen_height() / 2 as f32);
+
+    return [x2d, y2d];
 }
 
 enum Action {

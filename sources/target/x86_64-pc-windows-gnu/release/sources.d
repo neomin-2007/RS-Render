@@ -1,0 +1,1 @@
+/home/neomin/Documentos/Programming\ Works/Rust/RSRender/sources/target/x86_64-pc-windows-gnu/release/sources.exe: /home/neomin/Documentos/Programming\ Works/Rust/RSRender/sources/src/main.rs /home/neomin/Documentos/Programming\ Works/Rust/RSRender/sources/src/render.rs

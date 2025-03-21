@@ -25,6 +25,8 @@ async fn main() {
           user_distance: 500.0,
           user_x: 0.0,
           user_y: 0.0,
+          vertex_editing: false,
+          selected_vertex: 0,
     };
 
     let mut menu = Menu::new();
@@ -78,7 +80,8 @@ async fn main() {
         }
 
         if apply_render {
-            Geometry::draw_use();
+            Geometry::draw_use(&geometric);
+            Geometry::draw_vertex_editor(&geometric);
             geometric.draw();
             geometric.movement();
 
