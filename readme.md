@@ -10,12 +10,13 @@ This project is a renderer that converts three-dimensional (3D) objects represen
 - **3D to 2D Projection**: Uses a simple projection to convert 3D coordinates into 2D.
 - **Rotation and Movement**: The renderer allows you to rotate and move the object.
 - **Real-Time Rendering**: Draws the edges of the 3D object in a graphical window.
+- **Real-Time Vertex Editor (UNSTABLE)**: Edit your vertex transforming your vector.
 
 # Project Structure
 
 This project consists of two main classes:
 
-1. **`RenderPanel`**: Responsible for rendering the 3D object onto a 2D screen.
+1. **`Render`**: Responsible for rendering the 3D object onto a 2D screen.
     - **Method `project`**: Converts 3D coordinates into 2D.
     - **Method `paintComponent`**: Draws the edges of the object on the screen.
 
@@ -23,10 +24,8 @@ This project consists of two main classes:
     - **Attributes**:
         - `vertex`: A matrix of vertices (3D coordinates).
         - `edges`: A matrix of edges (connections between vertices).
-        - `user_angle_x`: The rotation of axis X.
-        - `user_angle_y`: The rotation of axis Y.
-        - `user_distance`: The distance of perspective.
-        - `user_x` and `user_y`: The coordinates X and Y.
+        - `user_scale`: Distance between camera and yoour geometry.
+        - `user_distance`: Distance between geometry vertex and edges.
 
 ## Archive Example
 
@@ -49,11 +48,7 @@ The `.json` archive example:
       [7, 6], [6, 5], [5, 4], [4, 7],
       [0, 4], [1, 5], [2, 6], [3, 7]
   ],
-  "user_angle_x": 0.0,
-  "user_angle_y": 0.0,
   "user_scale": 500.0,
-  "user_distance": 500.0,
-  "user_x": 0.0,
-  "user_y": 0.0
+  "user_distance": 500.0
 }
 ```
